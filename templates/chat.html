@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <h2>Plant Care Assistant</h2>
+        <p>Ask me anything about plant care and health</p>
+    </div>
+    
+    <div class="chat-messages" id="chat-messages">
+        <div class="message bot">
+            <div class="message-content">
+                <p>Hello!  I'm your Plant Care Assistant. How can I help you today?</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chat-input">
+        <input type="text" id="user-input" placeholder="Type your question here...">
+        <button id="send-btn">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chat-messages');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    function addMessage(message, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = isUser ? 'message user' : 'message bot';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        
+        const paragraph = document.createElement('p');
+        paragraph.textContent = message;
+        
+        contentDiv.appendChild(paragraph);
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+        
+        // Auto scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendMessage() {
+        const message = userInput.value.trim();
+        if (message === '') return;
+        
+        // Add user message to chat
+        addMessage(message, true);
+        
+        // Clear input
+        userInput.value = '';
+        
+        // Add loading message
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message bot loading';
+        loadingDiv.innerHTML = '<div class="message-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Send to backend
+        fetch('/get_response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query: message }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove loading message
+            chatMessages.removeChild(loadingDiv);
+            
+            // Add bot response
+            addMessage(data.response, false);
+        })
+        .catch(error => {
+            chatMessages.removeChild(loadingDiv);
+            addMessage('Sorry, there was an error processing your request.', false);
+            console.error('Error:', error);
+        });
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    
+    userInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+});
+</script>
+{% endblock %}

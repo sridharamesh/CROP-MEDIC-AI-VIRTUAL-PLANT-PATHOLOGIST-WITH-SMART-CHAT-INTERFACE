@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="disease-prediction">
+    <h2>Plant Disease Detection</h2>
+    <p class="instruction">Upload a clear image of your plant leaf to identify possible diseases</p>
+    
+    {% if error %}
+    <div class="error-message">
+        <p>{{ error }}</p>
+    </div>
+    {% endif %}
+    
+    <form action="/disease_prediction" method="post" enctype="multipart/form-data" class="upload-form">
+        <div class="file-upload">
+            <div class="file-upload-area" id="upload-area">
+                <input type="file" name="image" id="image-upload" accept="image/*" hidden>
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <p>Drag and drop your image here or <span>browse files</span></p>
+                <div class="preview-container" id="preview-container" style="display: none;">
+                    <img id="image-preview" src="#" alt="Preview">
+                    <div class="remove-preview" id="remove-preview">×</div>
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary submit-btn">Analyze Image</button>
+    </form>
+    
+    <div class="tips">
+        <h3>For best results:</h3>
+        <ul>
+            <li>Use a clear, well-lit image</li>
+            <li>Focus on the affected area</li>
+            <li>Use a neutral background if possible</li>
+            <li>Capture multiple angles if needed</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('image-upload');
+    const previewContainer = document.getElementById('preview-container');
+    const imagePreview = document.getElementById('image-preview');
+    const removePreview = document.getElementById('remove-preview');
+
+    // Trigger file input when clicking on upload area
+    uploadArea.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    // Handle file selection
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                previewContainer.style.display = 'block';
+                uploadArea.classList.add('has-image');
+            };
+            
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Remove preview
+    removePreview.addEventListener('click', function(e) {
+        e.stopPropagation();
+        fileInput.value = '';
+        previewContainer.style.display = 'none';
+        uploadArea.classList.remove('has-image');
+    });
+
+    // Drag and drop functionality
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        uploadArea.classList.add('drag-highlight');
+    }
+
+    function unhighlight() {
+        uploadArea.classList.remove('drag-highlight');
+    }
+
+    uploadArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files && files[0]) {
+            fileInput.files = files;
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                previewContainer.style.display = 'block';
+                uploadArea.classList.add('has-image');
+            };
+            
+            reader.readAsDataURL(files[0]);
+        }
+    }
+});
+</script>
+{% endblock %}

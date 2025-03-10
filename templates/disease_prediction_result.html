@@ -1,0 +1,29 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="disease-result">
+    <div class="result-header">
+        <h2>Disease Detection Results</h2>
+        <a href="/disease_prediction" class="btn btn-secondary">Analyze Another Image</a>
+    </div>
+    
+    <div class="result-content">
+        <div class="result-card">
+            <div class="result-icon {% if 'healthy' in prediction.lower() %}healthy{% else %}diseased{% endif %}">
+                <i class="fas {% if 'healthy' in prediction.lower() %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+            </div>
+            
+            <h3>Diagnosis: {{ prediction }}</h3>
+            
+            <div class="result-description">
+                <p>Based on the image analysis, your plant appears to have <strong>{{ prediction }}</strong>.</p>
+            </div>
+            
+            <a href="/chat" class="btn btn-primary chat-btn">
+                <i class="fas fa-comment-dots"></i> Chat About This Issue
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

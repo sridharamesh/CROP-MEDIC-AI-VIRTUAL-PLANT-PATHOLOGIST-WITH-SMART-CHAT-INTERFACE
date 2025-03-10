@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Welcome to Plant Care Assistant</h1>
+        <p>Your AI-powered companion for plant health and care</p>
+        <div class="cta-buttons">
+            <a href="/chat" class="btn btn-primary">Ask Our AI</a>
+            <a href="/disease_prediction" class="btn btn-secondary">Diagnose Plant Disease</a>
+        </div>
+    </div>
+    
+    <div class="hero-image">
+        <img src="{{ url_for('static', filename='images/plants.jpg') }}" alt="Healthy plants">
+    </div>
+</section>
+
+<section class="features">
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-robot"></i>
+        </div>
+        <h3>AI Chatbot</h3>
+        <p>Get answers to your plant care questions using our document-based AI assistant.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-leaf"></i>
+        </div>
+        <h3>Disease Detection</h3>
+        <p>Upload an image of your plant and get instant disease diagnosis.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-book"></i>
+        </div>
+        <h3>Knowledge Base</h3>
+        <p>Access our extensive library of plant care information and best practices.</p>
+    </div>
+</section>
+{% endblock %}
