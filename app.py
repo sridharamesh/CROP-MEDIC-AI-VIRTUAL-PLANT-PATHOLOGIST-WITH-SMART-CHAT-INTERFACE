@@ -118,7 +118,9 @@ def get_response():
 # -------------------- Plant Disease Classification --------------------
 model = models.resnet18(pretrained=True)
 model.fc = nn.Linear(model.fc.in_features, 1000)
-model.load_state_dict(torch.load('plant_disease_classification.pth'))
+model_path = os.path.join('models', 'plant_disease_classification.pth')
+model.load_state_dict(torch.load(model_path))
+
 model.eval()
 
 with open("class_names.json", "r") as f:
