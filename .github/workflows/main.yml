@@ -29,8 +29,10 @@ jobs:
       - name: Download model from Google Drive
         run: |
           mkdir -p models
-          # Using your specific Google Drive file ID
-          gdown https://drive.google.com/uc?id=1uw3bfSPDTOAKJusQ16gRfCSS5C9Gl7JS -O models/your_model.pt
+          # Using your specific Google Drive file ID and saving with the correct filename
+          gdown https://drive.google.com/uc?id=1uw3bfSPDTOAKJusQ16gRfCSS5C9Gl7JS -O models/plant_disease_classification.pth
+          # Show the downloaded file
+          ls -lh models/
       
       - name: Cache Ollama models
         uses: actions/cache@v3
