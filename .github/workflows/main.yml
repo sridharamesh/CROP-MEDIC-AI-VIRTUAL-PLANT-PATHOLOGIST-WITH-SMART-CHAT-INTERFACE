@@ -8,26 +8,44 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.8 
+      
       - name: Create virtual environment
         run: |
           python -m venv venv
           source venv/bin/activate
+      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-          curl -fsSL https://ollama.com/install.sh | sh
+      
+      - name: Cache Ollama models
+        uses: actions/cache@v2
+        with:
+          path: ~/.ollama
+          key: ollama-models-${{ runner.os }}
+      
+      - name: Install and setup Ollama
+        run: |
+          if ! command -v ollama &> /dev/null; then
+            curl -fsSL https://ollama.com/install.sh | sh
+          fi
+          ollama serve &
+          sleep 10  # Give Ollama service time to start
           ollama pull mistral
           ollama pull mxbai-embed-large
+      
       - name: Print debugging information
         run: |
           echo "Python Version: $(python --version)"
           echo "Working Directory: $(pwd)"
           echo "Contents of Working Directory: $(ls -l)"
           echo "Contents of site-packages: $(ls -l venv/lib/python*/site-packages)"
+      
       - name: Run tests
         run: python test_file.py
