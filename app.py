@@ -9,6 +9,7 @@ from llama_index.core import Settings, load_index_from_storage
 from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core import StorageContext
+import os
 
 app = Flask(__name__)
 
