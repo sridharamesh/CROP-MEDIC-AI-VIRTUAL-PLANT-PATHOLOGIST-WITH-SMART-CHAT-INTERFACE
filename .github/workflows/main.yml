@@ -24,6 +24,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+          python -m pip install gdown  # For Google Drive downloads
+      
+      - name: Download model from Google Drive
+        run: |
+          mkdir -p models
+          # Using your specific Google Drive file ID
+          gdown https://drive.google.com/uc?id=1uw3bfSPDTOAKJusQ16gRfCSS5C9Gl7JS -O models/your_model.pt
       
       - name: Cache Ollama models
         uses: actions/cache@v3
@@ -45,11 +52,8 @@ jobs:
         run: |
           echo "Python Version: $(python --version)"
           echo "Working Directory: $(pwd)"
-          echo "Contents of Working Directory: $(ls -l)"
+          echo "Contents of models directory: $(ls -lh models/)"
           echo "Installed Packages: $(pip list)"
-          if python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"; then
-            echo "PyTorch CUDA devices: $(python -c 'import torch; print(torch.cuda.device_count())')"
-          fi
       
       - name: Run tests
         run: python app.py
