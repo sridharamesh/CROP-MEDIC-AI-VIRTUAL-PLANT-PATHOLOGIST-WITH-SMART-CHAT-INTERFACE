@@ -120,7 +120,13 @@ def get_response():
 model = models.resnet18(pretrained=True)
 model.fc = nn.Linear(model.fc.in_features, 1000)
 model_path = os.path.join('models', 'plant_disease_classification.pth')
-model.load_state_dict(torch.load(model_path))
+
+# Add device detection to handle both CPU and GPU environments
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model.to(device)
+
+# Load the model with map_location parameter to handle CPU-only environments
+model.load_state_dict(torch.load(model_path, map_location=device))
 
 model.eval()
 
@@ -149,7 +155,7 @@ def disease_prediction():
         
         image = Image.open(file.stream)
         input_tensor = preprocess(image)
-        input_batch = input_tensor.unsqueeze(0)
+        input_batch = input_tensor.unsqueeze(0).to(device)  # Move input to the same device as model
         
         with torch.no_grad():
             output = model(input_batch)
