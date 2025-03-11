@@ -196,10 +196,4 @@ def disease_prediction():
     except Exception as e:
         return render_template('disease_prediction.html', error=str(e))
 
-# Get port from environment variable for deployment platforms
-port = int(os.environ.get("PORT", 5000))
-
-if __name__ == "__main__":
-    # In production, don't use debug mode
-    is_debug = os.environ.get("FLASK_ENV", "production") == "development"
-    app.run(host="0.0.0.0", port=port, debug=is_debug)
+app.run(debug=True)
