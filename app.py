@@ -95,7 +95,8 @@ class RAGChatbot:
     def append_message(self, message):
         self.memory.add_message(role="user", content=message)
 
-chatbot = RAGChatbot()
+# Initialize chatbot only when needed (not during import)
+chatbot = None
 
 # -------------------- Added Routes --------------------
 @app.route("/")
@@ -104,11 +105,18 @@ def index():
 
 @app.route("/chat")
 def chat():
+    global chatbot
+    if chatbot is None:
+        chatbot = RAGChatbot()
     return render_template("chat.html")
 
 # -------------------- API Routes --------------------
 @app.route("/get_response", methods=["POST"])
 def get_response():
+    global chatbot
+    if chatbot is None:
+        chatbot = RAGChatbot()
+    
     user_query = request.json.get("query", "")
     try:
         response = chatbot.query(user_query)
@@ -117,35 +125,55 @@ def get_response():
         return jsonify({"response": str(e)}), 400
 
 # -------------------- Plant Disease Classification --------------------
-model = models.resnet18(pretrained=True)
-model.fc = nn.Linear(model.fc.in_features, 1000)
-model_path = os.path.join('models', 'plant_disease_classification.pth')
+# Load model on first request
+model = None
+class_names = None
+preprocess = None
+device = None
 
-# Add device detection to handle both CPU and GPU environments
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model.to(device)
-
-# Load the model with map_location parameter to handle CPU-only environments
-model.load_state_dict(torch.load(model_path, map_location=device))
-
-model.eval()
-
-with open("class_names.json", "r") as f:
-    class_names = json.load(f)
-
-preprocess = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
+def setup_model():
+    global model, class_names, preprocess, device
+    
+    # Check if model is already loaded
+    if model is not None:
+        return
+    
+    # Initialize model
+    model = models.resnet18(pretrained=True)
+    model.fc = nn.Linear(model.fc.in_features, 1000)
+    
+    # Add device detection to handle both CPU and GPU environments
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    # Define model path
+    model_path = os.path.join('models', 'plant_disease_classification.pth')
+    
+    # Load the model with map_location parameter to handle CPU-only environments
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.to(device)
+    model.eval()
+    
+    # Load class names
+    with open("class_names.json", "r") as f:
+        class_names = json.load(f)
+    
+    # Setup preprocessing
+    preprocess = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
 
 @app.route('/disease_prediction', methods=['GET', 'POST'])
 def disease_prediction():
     if request.method == 'GET':
         return render_template('disease_prediction.html')
-        
+    
     try:
+        # Setup model on first request
+        setup_model()
+        
         if 'image' not in request.files:
             return render_template('disease_prediction.html', error="No image file uploaded.")
         
@@ -162,12 +190,16 @@ def disease_prediction():
             _, predicted_class = output.max(1)
         
         predicted_class_name = class_names[predicted_class.item()]
-        #chatbot.append_message(f"Hello, I see your plant has {predicted_class_name}. How can I help you?")
         
         return render_template('disease_prediction_result.html', prediction=predicted_class_name)
     
     except Exception as e:
         return render_template('disease_prediction.html', error=str(e))
 
+# Get port from environment variable for deployment platforms
+port = int(os.environ.get("PORT", 5000))
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    # In production, don't use debug mode
+    is_debug = os.environ.get("FLASK_ENV", "production") == "development"
+    app.run(host="0.0.0.0", port=port, debug=is_debug)
