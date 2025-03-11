@@ -9,3 +9,4 @@ ollama
 pandas
 pydantic
 python-dotenv
+gunicorn
