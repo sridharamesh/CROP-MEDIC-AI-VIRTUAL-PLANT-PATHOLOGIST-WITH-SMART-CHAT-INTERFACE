@@ -195,5 +195,3 @@ def disease_prediction():
     
     except Exception as e:
         return render_template('disease_prediction.html', error=str(e))
-
-app.run(debug=True)
