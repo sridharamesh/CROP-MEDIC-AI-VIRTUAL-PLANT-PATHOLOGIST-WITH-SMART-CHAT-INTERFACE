@@ -23,6 +23,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
+          python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
       
       - name: Cache Ollama models
         uses: actions/cache@v3
@@ -45,7 +46,10 @@ jobs:
           echo "Python Version: $(python --version)"
           echo "Working Directory: $(pwd)"
           echo "Contents of Working Directory: $(ls -l)"
-          echo "Contents of site-packages: $(ls -l venv/lib/python*/site-packages)"
+          echo "Installed Packages: $(pip list)"
+          if python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"; then
+            echo "PyTorch CUDA devices: $(python -c 'import torch; print(torch.cuda.device_count())')"
+          fi
       
       - name: Run tests
-        run: python test_file.py
+        run: python app.py
