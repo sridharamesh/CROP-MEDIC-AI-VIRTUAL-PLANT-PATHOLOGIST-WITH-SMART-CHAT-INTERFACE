@@ -1,4 +1,4 @@
-name: Flask CI
+name: Flask Production Build
 on:
   push:
     branches: [main]
@@ -23,39 +23,33 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-          python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-          python -m pip install gdown  # For Google Drive downloads
+          python -m pip install gunicorn  # Add production WSGI server
+          python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install gdown
       
       - name: Download model from Google Drive
         run: |
           mkdir -p models
-          # Using your specific Google Drive file ID and saving with the correct filename
           gdown https://drive.google.com/uc?id=1uw3bfSPDTOAKJusQ16gRfCSS5C9Gl7JS -O models/plant_disease_classification.pth
-          # Show the downloaded file
           ls -lh models/
       
-      - name: Cache Ollama models
-        uses: actions/cache@v3
-        with:
-          path: ~/.ollama
-          key: ollama-models-${{ runner.os }}
-      
-      - name: Install and setup Ollama
+      - name: Create production configuration
         run: |
-          if ! command -v ollama &> /dev/null; then
-            curl -fsSL https://ollama.com/install.sh | sh
-          fi
-          ollama serve &
-          sleep 10  # Give Ollama service time to start
-          ollama pull mistral
-          ollama pull mxbai-embed-large
+          echo "FLASK_ENV=production" > .env
+          echo "PORT=8080" >> .env
       
-      - name: Print debugging information
+      - name: Create start script
         run: |
-          echo "Python Version: $(python --version)"
-          echo "Working Directory: $(pwd)"
-          echo "Contents of models directory: $(ls -lh models/)"
-          echo "Installed Packages: $(pip list)"
+          echo "#!/bin/bash" > start.sh
+          echo "source venv/bin/activate" >> start.sh
+          echo "gunicorn --bind 0.0.0.0:\$PORT app:app" >> start.sh
+          chmod +x start.sh
       
-      - name: Run tests
-        run: python app.py
+      - name: Build successful
+        run: |
+          echo "Production build completed successfully"
+          echo "To run the application, use ./start.sh"
+          
+      # GitHub Actions can build the app, but cannot host Flask directly
+      # The files will be available in your repository, but you'll need
+      # to manually deploy them to a server that can run Python applications
