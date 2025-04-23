@@ -1,12 +1,12 @@
 flask
-langchain
-langchain-ollama
 llama-index
 llama-index-embeddings-ollama
 llama-index-llms-ollama
 numpy
 ollama
-pandas
 pydantic
 python-dotenv
-gunicorn
+torch 
+torchvision
+torchaudio
+
