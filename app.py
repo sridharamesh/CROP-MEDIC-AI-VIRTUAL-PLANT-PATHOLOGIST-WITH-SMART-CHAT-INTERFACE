@@ -191,7 +191,7 @@ def ask_question():
         
         response = chatbot.chat_with_ollama(full_question)
         return jsonify({"response": response})
-    except Exception as e:
+    except Exception as e:``
         return jsonify({"response": str(e)}), 400
 
 # Keep the old endpoint for backward compatibility
@@ -207,4 +207,4 @@ def ask_followup_question():
         return jsonify({"chatbot_response": str(e)}), 400
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
