@@ -38,8 +38,8 @@ conda activate plant_env
 ```bash
 pip install -r requirements.txt
 
-install ollama from ollama.ai website
-pull mistral and mxbai-embed-large
+#install ollama from ollama.ai website
+#pull mistral and mxbai-embed-large
 ollama pull mistral
 ollama pull mxbai-embed-large 
 ```
